@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-g" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>THUNDER WARP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['"Orbitron"', 'sans-serif'],
+            },
+            colors: {
+              'space-dark': '#0f172a',
+              'panel-dark': '#1e293b',
+              'panel-light': '#334155',
+              'electric-yellow': '#facc15',
+            },
+            animation: {
+              'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
+            },
+            keyframes: {
+              'pulse-glow': {
+                '0%, 100%': {
+                  textShadow: '0 0 4px #facc15, 0 0 8px #facc15',
+                  filter: 'blur(0.5px)'
+                },
+                '50%': {
+                  textShadow: '0 0 8px #fde047, 0 0 16px #fde047',
+                  filter: 'blur(1px)'
+                },
+              }
+            }
+          }
+        }
+      }
+    </script>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "three": "https://unpkg.com/three@0.161.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.161.0/examples/jsm/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.15.0",
+    "three/": "https://aistudiocdn.com/three@^0.179.1/",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.1.1"
+  }
+}
+</script>
+</head>
+  <body class="bg-space-dark text-white font-sans">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
