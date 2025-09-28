@@ -1,14 +1,4 @@
 
-
-
-
-
-
-
-
-
-
-
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { BlockPalette } from './components/BlockPalette';
@@ -59,6 +49,7 @@ const C_BLOCK_MIN_BODY_HEIGHT = 24;
 
 function App() {
   const firstSpriteId = `sprite-${Date.now()}`;
+  const [projectName, setProjectName] = useState('Untitled Project');
   const [sprites, setSprites] = useState<SpriteState[]>([createInitialSpriteState(firstSpriteId, 'Sprite1')]);
   const [activeSpriteId, setActiveSpriteId] = useState<string | null>(firstSpriteId);
   const [scripts, setScripts] = useState<Record<string, ScriptBlock[]>>({ [firstSpriteId]: [] });
@@ -99,6 +90,7 @@ function App() {
   const activeSourcesRef = useRef<AudioScheduledSourceNode[]>([]);
   const canvasCtxRef = useRef<CanvasRenderingContext2D | null>(null);
   const prevSpritesRef = useRef<SpriteState[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Refs to hold execution functions for handling mutual recursion and callbacks
   const executionFuncs = useRef<{
@@ -1141,12 +1133,115 @@ function App() {
       )
   };
 
+  const handleSaveProject = () => {
+    const projectData = {
+        version: '1.0.0', // for future compatibility
+        projectName,
+        sprites,
+        scripts,
+        variables,
+        monitors,
+        activeExtensions,
+        activeSpriteId,
+    };
+
+    const jsonString = JSON.stringify(projectData, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const href = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = href;
+    const filename = (projectName.trim() || 'project').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    link.download = `${filename}.twproject`;
+    document.body.appendChild(link);
+    link.click();
+
+    document.body.removeChild(link);
+    URL.revokeObjectURL(href);
+  };
+
+  const handleLoadProject = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+          try {
+              const result = event.target?.result;
+              if (typeof result !== 'string') {
+                  throw new Error("Failed to read file content.");
+              }
+              const projectData = JSON.parse(result);
+              
+              if (!projectData.sprites || !projectData.scripts || !projectData.variables) {
+                  throw new Error("Invalid project file format.");
+              }
+
+              stopScript();
+              
+              if (canvasCtxRef.current) {
+                  const { canvas } = canvasCtxRef.current;
+                  canvasCtxRef.current.clearRect(0, 0, canvas.width, canvas.height);
+              }
+
+              setProjectName(projectData.projectName || 'Untitled Project');
+              setSprites(projectData.sprites);
+              setScripts(projectData.scripts);
+              setVariables(projectData.variables);
+              setMonitors(projectData.monitors || { answer: false });
+              setActiveExtensions(projectData.activeExtensions || []);
+              setActiveSpriteId(projectData.activeSpriteId || (projectData.sprites[0]?.id || null));
+
+          } catch (error) {
+              console.error("Failed to load project:", error);
+              alert("Could not load project. The file might be corrupted or in the wrong format.");
+          } finally {
+              if (e.target) e.target.value = '';
+          }
+      };
+      reader.readAsText(file);
+  };
+
+  const triggerLoadInput = () => {
+      fileInputRef.current?.click();
+  };
+
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden text-sm">
       {/* Header */}
       <header className="bg-panel-dark flex-shrink-0 flex items-center justify-between p-2 shadow-lg z-20">
         <div className="flex items-center gap-4">
           <h1 className="text-xl font-bold text-electric-yellow tracking-widest animate-pulse-glow">THUNDER WARP</h1>
+          <input
+            type="text"
+            value={projectName}
+            onChange={(e) => setProjectName(e.target.value)}
+            className="bg-panel-light border border-slate-600 rounded-md px-3 py-1 text-sm text-white placeholder-slate-400 focus:ring-2 focus:ring-electric-yellow focus:outline-none w-64"
+            placeholder="Project Name"
+          />
+          <div className="flex items-center gap-2 border-l border-r border-slate-700 px-4">
+              <button
+                  onClick={handleSaveProject}
+                  className="text-xs bg-panel-light hover:bg-slate-600 text-slate-300 hover:text-electric-yellow font-semibold py-1 px-3 rounded-full transition-colors"
+                  title="Save project to your computer"
+              >
+                  Save
+              </button>
+              <button
+                  onClick={triggerLoadInput}
+                  className="text-xs bg-panel-light hover:bg-slate-600 text-slate-300 hover:text-electric-yellow font-semibold py-1 px-3 rounded-full transition-colors"
+                  title="Load project from your computer"
+              >
+                  Load
+              </button>
+              <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleLoadProject}
+                  className="hidden"
+                  accept=".twproject"
+              />
+          </div>
           <a
             href="https://mail.google.com/mail/?view=cm&fs=1&to=ssfeedback111@gmail.com&su=Feedback%20for%20THUNDER%20WARP"
             target="_blank"
